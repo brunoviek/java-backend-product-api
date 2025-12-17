@@ -1,0 +1,37 @@
+target/
+!target/*.jar
+!target/classes
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Oracle JDK (já que usaremos a imagem base)
+oracleJdk-21/
+
+# Scripts locais
+start.bat
+start.ps1
