@@ -487,8 +487,60 @@ docker-compose -f docker-compose-scale.yml up --scale app=3
 
 ---
 
-### 10. **Comprehensive Test Coverage**
-**Decision:** Achieve 100% test coverage with 52 unit tests across all layers.
+### 10. **Request ID Tracking for Distributed Tracing**
+**Decision:** Implement `RequestIdFilter` to generate unique UUIDs for each request and propagate through logs using SLF4J MDC.
+
+**Rationale:**
+- **Distributed Tracing**: Track requests across multiple services and async event handlers
+- **Debugging**: Correlate all log entries for a single user request
+- **Observability**: Essential for troubleshooting issues in production
+- **HTTP Header Propagation**: Client can provide `X-Request-ID` or system generates one automatically
+
+**Implementation:**
+```java
+@Component
+@Order(1)
+public class RequestIdFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        String requestId = request.getHeader("X-Request-ID");
+        if (requestId == null || requestId.isEmpty()) {
+            requestId = UUID.randomUUID().toString();
+        }
+        
+        MDC.put("requestId", requestId);
+        response.setHeader("X-Request-ID", requestId);
+        
+        try {
+            log.info("Request started: {} {} - RequestID: {}", request.getMethod(), request.getRequestURI(), requestId);
+            filterChain.doFilter(request, response);
+            log.info("Request completed: {} {} - Status: {} - RequestID: {}", 
+                request.getMethod(), request.getRequestURI(), response.getStatus(), requestId);
+        } finally {
+            MDC.remove("requestId");
+        }
+    }
+}
+```
+
+**Benefits:**
+- **Request Correlation**: All logs for a request share the same `requestId`
+- **Async Tracking**: Request ID propagates to async event handlers
+- **Client Tracing**: Clients can send `X-Request-ID` header for end-to-end tracing
+- **Production Debugging**: Quickly find all logs related to a specific user complaint
+
+**Example Logs:**
+```
+2025-12-18 10:30:00 INFO  [http-nio-8080-exec-1] RequestIdFilter - Request started: GET /api/v1/products/1 - RequestID: 550e8400-e29b-41d4-a716-446655440000
+2025-12-18 10:30:00 INFO  [http-nio-8080-exec-1] ProductService - Fetching product with ID: 1 - RequestID: 550e8400-e29b-41d4-a716-446655440000
+2025-12-18 10:30:01 INFO  [async-event-1] ProductEventListener - Product viewed analytics - RequestID: 550e8400-e29b-41d4-a716-446655440000
+2025-12-18 10:30:01 INFO  [http-nio-8080-exec-1] RequestIdFilter - Request completed: GET /api/v1/products/1 - Status: 200 - RequestID: 550e8400-e29b-41d4-a716-446655440000
+```
+
+---
+
+### 11. **Comprehensive Test Coverage**
+**Decision:** Achieve 99% instruction coverage with 146 unit tests across all layers.
 
 **Rationale:**
 - **Confidence**: Safe refactoring and feature additions
@@ -504,7 +556,76 @@ docker-compose -f docker-compose-scale.yml up --scale app=3
 
 ---
 
-## 🛠️ Technology Stack
+## � Observability & Monitoring
+
+This project implements enterprise-grade observability patterns for production monitoring and debugging:
+
+### 1. **Request ID Tracking (Distributed Tracing)**
+Every HTTP request receives a unique identifier (`X-Request-ID`) that propagates through:
+- All application logs via SLF4J MDC (Mapped Diagnostic Context)
+- Async event handlers (analytics, metrics, audit)
+- HTTP response headers for client-side correlation
+
+**How it works:**
+```bash
+# Client can provide Request ID
+curl -H "X-Request-ID: my-custom-id" http://localhost:8080/api/v1/products/1
+
+# Or system auto-generates UUID
+curl http://localhost:8080/api/v1/products/1
+# Response Header: X-Request-ID: 550e8400-e29b-41d4-a716-446655440000
+```
+
+**Log correlation example:**
+```
+[requestId:550e8400...] Request started: GET /api/v1/products/1
+[requestId:550e8400...] Fetching product from cache
+[requestId:550e8400...] Cache miss, querying repository
+[requestId:550e8400...] Publishing ProductViewedEvent
+[requestId:550e8400...] Request completed - Status: 200
+[requestId:550e8400...] [async-event-1] Analytics processing started
+[requestId:550e8400...] [async-event-2] Metrics aggregation started
+```
+
+### 2. **Structured Logging**
+- **Request/Response Logging**: Every request logged with method, URI, status, duration
+- **Thread Information**: Logs include thread names (http-nio, async-event-N)
+- **Performance Tracking**: Service methods log execution time for slow operations
+- **Error Context**: Exceptions logged with full stack trace and request context
+
+### 3. **Metrics Endpoints**
+Real-time metrics available via REST API:
+- `/api/v1/metrics/products/{id}/views` - Product view counts
+- `/api/v1/metrics/categories/{category}/views` - Category view counts
+
+These metrics are tracked via async event listeners without impacting request performance.
+
+### 4. **Health Checks**
+Automated health check scripts verify:
+- Application availability (HTTP 200 on `/api/v1/products`)
+- Response time thresholds
+- Service dependencies (Redis connectivity)
+
+**Scripts provided:**
+- `scripts/healthcheck.sh` (Linux/Mac)
+- `scripts/healthcheck.ps1` (Windows)
+
+### 5. **Error Handling & Logging**
+- **404 Not Found**: Logged as WARN (expected client errors)
+- **500 Internal Server Error**: Logged as ERROR with full context
+- **Circuit Breaker States**: Logged when circuit opens/closes
+- **Retry Attempts**: Logged with attempt number and reason
+
+### 6. **Production-Ready Monitoring Integration**
+The architecture supports integration with:
+- **ELK Stack**: RequestID enables log aggregation and correlation
+- **Prometheus/Grafana**: Spring Actuator endpoints ready for metrics collection
+- **Jaeger/Zipkin**: Request ID pattern compatible with distributed tracing
+- **APM Tools**: New Relic, Datadog, Dynatrace compatible
+
+---
+
+## �🛠️ Technology Stack
 
 ### Core Framework
 - **Java 21** - Latest LTS with virtual threads and pattern matching
