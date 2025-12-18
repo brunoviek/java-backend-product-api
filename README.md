@@ -928,7 +928,8 @@ This project evolved through multiple iterations, each addressing specific scala
 6. **SOLID Principles**: Refactored to service interfaces for better testability
 7. **Code Quality**: Removed fully qualified class names, improved imports
 8. **Async Events**: Implemented event-driven architecture for analytics
-9. **Testing**: Achieved 100% code coverage with comprehensive unit tests
+9. **Observability**: Added RequestIdFilter middleware for distributed tracing with UUID generation and SLF4J MDC integration
+10. **Testing**: Achieved 99% instruction coverage (146 tests) with comprehensive unit tests
 
 Each decision was made to simulate challenges faced in high-demand e-commerce platforms like Mercado Livre.
 
