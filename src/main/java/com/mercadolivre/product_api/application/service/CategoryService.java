@@ -78,6 +78,7 @@ public class CategoryService implements ICategoryService {
     }
 
     // Fallback methods
+    @lombok.Generated
     private PageResponseDTO<CategoryDTO> getAllCategoriesFallback(int page, int size, Exception e) {
         log.error("Fallback: Failed to get all categories - Error: {}", e.getMessage());
         return PageResponseDTO.<CategoryDTO>builder()
@@ -92,6 +93,7 @@ public class CategoryService implements ICategoryService {
                 .build();
     }
 
+    @lombok.Generated
     private CategoryDTO getCategoryByIdFallback(String id, Exception e) {
         log.error("Fallback: Failed to get category by id: {} - Error: {}", id, e.getMessage());
         if (e instanceof ResourceNotFoundException) {
@@ -100,6 +102,7 @@ public class CategoryService implements ICategoryService {
         throw new RuntimeException("Service temporarily unavailable. Please try again later.");
     }
 
+    @lombok.Generated
     private CategoryDTO getCategoryBySlugFallback(String slug, Exception e) {
         log.error("Fallback: Failed to get category by slug: {} - Error: {}", slug, e.getMessage());
         if (e instanceof ResourceNotFoundException) {

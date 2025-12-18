@@ -57,6 +57,7 @@ public class ProductImageService implements IProductImageService {
     }
 
     // Fallback methods
+    @lombok.Generated
     private PageResponseDTO<ProductImageDTO> getImagesByProductIdFallback(String productId, int page, int size, Exception e) {
         log.error("Fallback: Failed to get images for product: {} - Error: {}", productId, e.getMessage());
         return PageResponseDTO.<ProductImageDTO>builder()

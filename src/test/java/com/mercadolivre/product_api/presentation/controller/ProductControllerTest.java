@@ -166,4 +166,44 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("GET /api/v1/products without parameters should use defaults")
+    void shouldUseDefaultParameters() throws Exception {
+        // Given
+        when(productService.getAllProducts(eq(0), eq(20), eq(null), eq(null))).thenReturn(pageResponse);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/products/category/{category} should enforce max size limit")
+    void shouldEnforceMaxSizeForCategory() throws Exception {
+        // Given
+        when(productService.getProductsByCategory(eq("electronics"), anyInt(), eq(50)))
+                .thenReturn(pageResponse);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/products/category/electronics")
+                        .param("size", "100")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/products/{id}/recommended should enforce max size limit")
+    void shouldEnforceMaxSizeForRecommended() throws Exception {
+        // Given
+        when(productService.getRecommendedProducts(eq("1"), anyInt(), eq(50)))
+                .thenReturn(pageResponse);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/products/1/recommended")
+                        .param("size", "100")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }

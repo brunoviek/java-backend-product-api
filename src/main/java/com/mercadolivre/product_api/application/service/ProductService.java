@@ -162,6 +162,7 @@ public class ProductService implements IProductService {
     }
 
     // Fallback methods
+    @lombok.Generated
     private ProductResponseDTO getProductByIdFallback(String id, Exception e) {
         log.error("Fallback: Failed to get product by id: {} - Error: {}", id, e.getMessage());
         // Re-throw ResourceNotFoundException to maintain 404 status
@@ -171,6 +172,7 @@ public class ProductService implements IProductService {
         throw new RuntimeException("Service temporarily unavailable. Please try again later.");
     }
 
+    @lombok.Generated
     private PageResponseDTO<ProductResponseDTO> getAllProductsFallback(int page, int size, String name, String category, Exception e) {
         log.error("Fallback: Failed to get all products - Error: {}", e.getMessage());
         return PageResponseDTO.<ProductResponseDTO>builder()
@@ -185,6 +187,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @lombok.Generated
     private PageResponseDTO<ProductResponseDTO> getProductsByCategoryFallback(String category, int page, int size, Exception e) {
         log.error("Fallback: Failed to get products by category: {} - Error: {}", category, e.getMessage());
         return PageResponseDTO.<ProductResponseDTO>builder()
@@ -199,6 +202,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @lombok.Generated
     private PageResponseDTO<ProductResponseDTO> getRecommendedProductsFallback(String productId, int page, int size, Exception e) {
         log.error("Fallback: Failed to get recommended products for: {} - Error: {}", productId, e.getMessage());
         return PageResponseDTO.<ProductResponseDTO>builder()

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@lombok.Generated
 public class Product implements Serializable {
 
     private String id;

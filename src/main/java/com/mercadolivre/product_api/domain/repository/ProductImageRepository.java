@@ -9,5 +9,7 @@ public interface ProductImageRepository {
     List<ProductImage> findByProductId(String productId);
 
     List<ProductImage> findAll();
+    
+    ProductImage save(ProductImage image);
 
 }

@@ -24,5 +24,11 @@ public class ProductImageRepositoryInMemory implements ProductImageRepository {
     public List<ProductImage> findAll() {
         return new ArrayList<>(database.values());
     }
+    
+    @Override
+    public ProductImage save(ProductImage image) {
+        database.put(image.getId(), image);
+        return image;
+    }
 
 }

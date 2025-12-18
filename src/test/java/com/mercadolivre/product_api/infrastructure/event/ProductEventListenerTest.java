@@ -139,4 +139,43 @@ class ProductEventListenerTest {
         assertThat(eventListener.getCategoryViewCount("electronics")).isEqualTo(2);
         assertThat(eventListener.getCategoryViewCount("fashion")).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("Should handle interrupted exception in analytics processing")
+    void shouldHandleInterruptedExceptionInAnalytics() {
+        // Given
+        Thread.currentThread().interrupt();
+
+        // When & Then (should not throw exception)
+        eventListener.handleProductAnalytics(event);
+        
+        // Verify thread was interrupted
+        assertThat(Thread.interrupted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should handle interrupted exception in category metrics")
+    void shouldHandleInterruptedExceptionInCategoryMetrics() {
+        // Given
+        Thread.currentThread().interrupt();
+
+        // When & Then (should not throw exception)
+        eventListener.handleCategoryMetrics(event);
+        
+        // Verify thread was interrupted
+        assertThat(Thread.interrupted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should handle interrupted exception in audit log")
+    void shouldHandleInterruptedExceptionInAuditLog() {
+        // Given
+        Thread.currentThread().interrupt();
+
+        // When & Then (should not throw exception)
+        eventListener.handleAuditLog(event);
+        
+        // Verify thread was interrupted
+        assertThat(Thread.interrupted()).isTrue();
+    }
 }

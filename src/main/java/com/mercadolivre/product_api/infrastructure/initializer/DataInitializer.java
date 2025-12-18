@@ -174,6 +174,13 @@ public class DataInitializer implements CommandLineRunner {
     private int saveProduct(String name, String description, String price, Integer quantity, String category) {
         Product product = createProduct(name, description, new BigDecimal(price), quantity, category);
         productRepository.save(product);
+        
+        // Criar 3 imagens para cada produto
+        String productId = product.getId();
+        createImage(productId, "https://picsum.photos/800/600?random=" + productId + "-1", name + " - Imagem principal", true, 1);
+        createImage(productId, "https://picsum.photos/800/600?random=" + productId + "-2", name + " - Detalhe 1", false, 2);
+        createImage(productId, "https://picsum.photos/800/600?random=" + productId + "-3", name + " - Detalhe 2", false, 3);
+        
         return 1;
     }
 
@@ -201,7 +208,7 @@ public class DataInitializer implements CommandLineRunner {
                 .displayOrder(displayOrder)
                 .build();
         
-        productImageRepository.findAll().add(image);
+        productImageRepository.save(image);
     }
 
 }

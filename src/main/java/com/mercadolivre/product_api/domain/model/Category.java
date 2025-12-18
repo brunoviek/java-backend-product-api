@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@lombok.Generated
 public class Category implements Serializable {
 
     private String id;

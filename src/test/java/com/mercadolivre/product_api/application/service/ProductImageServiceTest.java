@@ -143,4 +143,96 @@ class ProductImageServiceTest {
 
         verify(productImageRepository).findByProductId("prod2");
     }
+
+    @Test
+    @DisplayName("Should return second page correctly")
+    void shouldReturnSecondPageCorrectly() {
+        // Given
+        List<ProductImage> images = Arrays.asList(image1, image2, image3);
+        when(productImageRepository.findByProductId("prod1")).thenReturn(images);
+
+        // When
+        PageResponseDTO<ProductImageDTO> result = productImageService.getImagesByProductId("prod1", 1, 2);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getPageNumber()).isEqualTo(1);
+        assertThat(result.isFirst()).isFalse();
+        assertThat(result.isLast()).isTrue();
+
+        verify(productImageRepository).findByProductId("prod1");
+    }
+
+    @Test
+    @DisplayName("Should return empty page when page number exceeds available pages")
+    void shouldReturnEmptyPageWhenPageNumberExceedsAvailablePages() {
+        // Given
+        List<ProductImage> images = Arrays.asList(image1);
+        when(productImageRepository.findByProductId("prod1")).thenReturn(images);
+
+        // When
+        PageResponseDTO<ProductImageDTO> result = productImageService.getImagesByProductId("prod1", 5, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.isEmpty()).isTrue();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+
+        verify(productImageRepository).findByProductId("prod1");
+    }
+
+    @Test
+    @DisplayName("Should handle images with same display order")
+    void shouldHandleImagesWithSameDisplayOrder() {
+        // Given
+        ProductImage image4 = new ProductImage();
+        image4.setId("img4");
+        image4.setProductId("prod1");
+        image4.setDisplayOrder(1); // Same as image1
+
+        List<ProductImage> images = Arrays.asList(image1, image4);
+        when(productImageRepository.findByProductId("prod1")).thenReturn(images);
+
+        // When
+        PageResponseDTO<ProductImageDTO> result = productImageService.getImagesByProductId("prod1", 0, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getDisplayOrder()).isEqualTo(1);
+        assertThat(result.getContent().get(1).getDisplayOrder()).isEqualTo(1);
+
+        verify(productImageRepository).findByProductId("prod1");
+    }
+
+    @Test
+    @DisplayName("Should handle all images with null display order")
+    void shouldHandleAllImagesWithNullDisplayOrder() {
+        // Given
+        ProductImage imageWithNullOrder1 = new ProductImage();
+        imageWithNullOrder1.setId("img4");
+        imageWithNullOrder1.setProductId("prod1");
+        imageWithNullOrder1.setDisplayOrder(null);
+
+        ProductImage imageWithNullOrder2 = new ProductImage();
+        imageWithNullOrder2.setId("img5");
+        imageWithNullOrder2.setProductId("prod1");
+        imageWithNullOrder2.setDisplayOrder(null);
+
+        List<ProductImage> images = Arrays.asList(imageWithNullOrder1, imageWithNullOrder2);
+        when(productImageRepository.findByProductId("prod1")).thenReturn(images);
+
+        // When
+        PageResponseDTO<ProductImageDTO> result = productImageService.getImagesByProductId("prod1", 0, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getDisplayOrder()).isNull();
+        assertThat(result.getContent().get(1).getDisplayOrder()).isNull();
+
+        verify(productImageRepository).findByProductId("prod1");
+    }
 }

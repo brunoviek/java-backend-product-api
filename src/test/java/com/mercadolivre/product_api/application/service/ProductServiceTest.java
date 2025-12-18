@@ -272,4 +272,224 @@ class ProductServiceTest {
 
         verify(productRepository).findAll();
     }
+
+    @Test
+    @DisplayName("Should filter by name only")
+    void shouldFilterByNameOnly() {
+        // Given
+        List<Product> products = Arrays.asList(product1);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getAllProducts(0, 10, "Product 1", null);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("Product 1");
+
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should filter by category only")
+    void shouldFilterByCategoryOnly() {
+        // Given
+        List<Product> products = Arrays.asList(product1, product2, product3);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getAllProducts(0, 10, null, "electronics");
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should filter by name and category together")
+    void shouldFilterByNameAndCategory() {
+        // Given
+        List<Product> products = Arrays.asList(product1, product2);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getAllProducts(0, 10, "Product 2", "electronics");
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("Product 2");
+
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return empty when filter finds no matches")
+    void shouldReturnEmptyWhenFilterFindsNoMatches() {
+        // Given
+        List<Product> products = Arrays.asList(product1, product2);
+        when(productRepository.findAll()).thenReturn(products);
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getAllProducts(0, 10, "Nonexistent", null);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.isEmpty()).isTrue();
+
+        verify(productRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return empty recommended products when only one product in category")
+    void shouldReturnEmptyRecommendedProductsWhenOnlyOneProductInCategory() {
+        // Given
+        when(productRepository.findById("3")).thenReturn(Optional.of(product3));
+        when(productRepository.findByCategory("fashion")).thenReturn(Arrays.asList(product3));
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getRecommendedProducts("3", 0, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.isEmpty()).isTrue();
+
+        verify(productRepository).findById("3");
+        verify(productRepository).findByCategory("fashion");
+    }
+
+    @Test
+    @DisplayName("Should paginate recommended products correctly")
+    void shouldPaginateRecommendedProductsCorrectly() {
+        // Given
+        Product product4 = new Product();
+        product4.setId("4");
+        product4.setName("Product 4");
+        product4.setCategory("electronics");
+
+        when(productRepository.findById("1")).thenReturn(Optional.of(product1));
+        when(productRepository.findByCategory("electronics")).thenReturn(Arrays.asList(product1, product2, product4));
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getRecommendedProducts("1", 0, 1);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+
+        verify(productRepository).findById("1");
+        verify(productRepository).findByCategory("electronics");
+    }
+
+    @Test
+    @DisplayName("Should paginate products by category correctly")
+    void shouldPaginateProductsByCategoryCorrectly() {
+        // Given
+        List<Product> products = Arrays.asList(product1, product2);
+        when(productRepository.findByCategory("electronics")).thenReturn(products);
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getProductsByCategory("electronics", 1, 1);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getPageNumber()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.isFirst()).isFalse();
+        assertThat(result.isLast()).isTrue();
+
+        verify(productRepository).findByCategory("electronics");
+    }
+
+    @Test
+    @DisplayName("Should return empty when category has no products")
+    void shouldReturnEmptyWhenCategoryHasNoProducts() {
+        // Given
+        when(productRepository.findByCategory("nonexistent")).thenReturn(Arrays.asList());
+
+        // When
+        PageResponseDTO<ProductResponseDTO> result = productService.getProductsByCategory("nonexistent", 0, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.isEmpty()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+
+        verify(productRepository).findByCategory("nonexistent");
+    }
+
+    @Test
+    @DisplayName("Should handle page 1 for getProductsByCategory")
+    void shouldHandlePage1ForGetProductsByCategory() {
+        // Given - setup com múltiplos produtos para ter mais de 1 página
+        List<Product> products = Arrays.asList(
+            Product.builder().id("1").name("Product 1").category("electronics")
+                .price(new BigDecimal("100.00")).quantity(10).active(true).build(),
+            Product.builder().id("2").name("Product 2").category("electronics")
+                .price(new BigDecimal("200.00")).quantity(5).active(true).build(),
+            Product.builder().id("3").name("Product 3").category("electronics")
+                .price(new BigDecimal("300.00")).quantity(15).active(true).build()
+        );
+        when(productRepository.findByCategory("electronics")).thenReturn(products);
+
+        // When - pedir página 1 com tamanho 2 (vai ter 2 páginas)
+        PageResponseDTO<ProductResponseDTO> result = productService.getProductsByCategory("electronics", 1, 2);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.isFirst()).isFalse();  // página 1 não é a primeira
+        assertThat(result.getPageNumber()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(1); // última página tem 1 item
+
+        verify(productRepository).findByCategory("electronics");
+    }
+
+    @Test
+    @DisplayName("Should handle page 1 for getRecommendedProducts with single item")
+    void shouldHandlePage1ForGetRecommendedProducts() {
+        // Given - produto base
+        Product baseProduct = Product.builder()
+                .id("1")
+                .name("Product 1")
+                .category("electronics")
+                .price(new BigDecimal("100.00"))
+                .quantity(10)
+                .active(true)
+                .build();
+        
+        // Produtos recomendados
+        Product recommended = Product.builder()
+                .id("2")
+                .name("Product 2")
+                .category("electronics")
+                .price(new BigDecimal("200.00"))
+                .quantity(5)
+                .active(true)
+                .build();
+
+        when(productRepository.findById("1")).thenReturn(Optional.of(baseProduct));
+        when(productRepository.findByCategory("electronics")).thenReturn(Arrays.asList(baseProduct, recommended));
+
+        // When - pedir página 1 (não primeira)
+        PageResponseDTO<ProductResponseDTO> result = productService.getRecommendedProducts("1", 1, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.isFirst()).isFalse();
+        assertThat(result.getPageNumber()).isEqualTo(1);
+
+        verify(productRepository).findById("1");
+        verify(productRepository).findByCategory("electronics");
+    }
 }

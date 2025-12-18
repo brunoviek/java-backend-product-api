@@ -154,4 +154,63 @@ class CategoryServiceTest {
 
         verify(categoryRepository).findAll();
     }
+
+    @Test
+    @DisplayName("Should return empty page when page number is beyond available pages")
+    void shouldReturnEmptyPageWhenPageNumberIsBeyondAvailablePages() {
+        // Given
+        List<Category> categories = Arrays.asList(category1);
+        when(categoryRepository.findAll()).thenReturn(categories);
+
+        // When
+        PageResponseDTO<CategoryDTO> result = categoryService.getAllCategories(10, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.isEmpty()).isTrue();
+
+        verify(categoryRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return last page when requesting second page")
+    void shouldReturnLastPageWhenRequestingSecondPage() {
+        // Given
+        List<Category> categories = Arrays.asList(category1, category2);
+        when(categoryRepository.findAll()).thenReturn(categories);
+
+        // When
+        PageResponseDTO<CategoryDTO> result = categoryService.getAllCategories(1, 1);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getPageNumber()).isEqualTo(1);
+        assertThat(result.isFirst()).isFalse();
+        assertThat(result.isLast()).isTrue();
+
+        verify(categoryRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no categories exist")
+    void shouldReturnEmptyPageWhenNoCategoriesExist() {
+        // Given
+        when(categoryRepository.findAll()).thenReturn(Arrays.asList());
+
+        // When
+        PageResponseDTO<CategoryDTO> result = categoryService.getAllCategories(0, 10);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.isEmpty()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isTrue();
+
+        verify(categoryRepository).findAll();
+    }
 }

@@ -1,10 +1,23 @@
 # Product API - High-Performance E-commerce System
 
+<div align="center">
+
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.2-red.svg)](https://redis.io/)
-[![Tests](https://img.shields.io/badge/Tests-52%20Passing-success.svg)](src/test)
+
+[![Build Status](https://img.shields.io/badge/build-passing-success.svg)](https://github.com/mercadolivre/product-api/actions)
+[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](target/site/jacoco)
+[![Tests](https://img.shields.io/badge/tests-146%20passing-success.svg)](src/test)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+[![Code Quality](https://img.shields.io/badge/code%20quality-A-brightgreen.svg)](https://sonarcloud.io)
+[![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)](https://github.com/mercadolivre/product-api/pulse)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+</div>
 
 A production-ready RESTful API designed to handle high-demand e-commerce scenarios, inspired by Mercado Livre's scale requirements. This project demonstrates enterprise-level architectural patterns including distributed caching, async event processing, circuit breakers, and horizontal scalability.
 
